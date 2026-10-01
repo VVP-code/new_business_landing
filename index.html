@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разбор удержаний Wildberries и Ozon</title>
+<meta name="description" content="Бесплатно разберу ваш отчёт о реализации и покажу, какие штрафы и удержания можно оспорить.">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --text: #1c1c1a;
+    --muted: #63635e;
+    --line: #e4e4de;
+    --accent: #1f6f4a;
+    --accent-text: #ffffff;
+    --accent-soft: #e6f2eb;
+    --warn: #b4441f;
+    --warn-soft: #fbece5;
+    --hero-bg: #12241b;
+    --hero-text: #f2f5f0;
+    --hero-muted: #b3c2b8;
+    --hero-accent: #6fd39f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151614;
+      --card: #1e201d;
+      --text: #ecece6;
+      --muted: #a3a39b;
+      --line: #32342f;
+      --accent: #4fb783;
+      --accent-text: #0e1a13;
+      --accent-soft: #1d2f25;
+      --warn: #f0906b;
+      --warn-soft: #33211a;
+      --hero-bg: #0e1a14;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  h1 { font-size: clamp(30px, 5.4vw, 50px); line-height: 1.1; margin: 0 0 18px; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(24px, 3.6vw, 32px); line-height: 1.2; margin: 0 0 10px; letter-spacing: -0.01em; }
+  h3 { font-size: 18px; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); }
+  .small { font-size: 14px; }
+  .sub { color: var(--muted); font-size: 18px; max-width: 640px; margin-bottom: 28px; }
+  section { padding: 64px 0; }
+  section.alt { background: var(--card); border-block: 1px solid var(--line); }
+
+  .btn {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--accent-text);
+    font: inherit;
+    font-weight: 700;
+    padding: 15px 26px;
+    border: 0;
+    border-radius: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .12s, filter .12s;
+  }
+  .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn.sm { padding: 9px 16px; font-size: 15px; border-radius: 9px; }
+
+  /* шапка */
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--hero-bg);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 58px; }
+  .logo { color: var(--hero-text); font-weight: 700; white-space: nowrap; }
+  .logo span { color: var(--hero-accent); }
+  header.top .btn { background: var(--hero-accent); color: #0e1a13; }
+
+  /* первый экран */
+  .hero { background: var(--hero-bg); color: var(--hero-text); padding: 56px 0 72px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+  .badge {
+    display: inline-block;
+    font-size: 14px; font-weight: 600;
+    color: var(--hero-accent);
+    border: 1px solid rgba(111,211,159,.4);
+    border-radius: 999px;
+    padding: 5px 14px;
+    margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: normal; color: var(--hero-accent); }
+  .hero .lead { font-size: 19px; color: var(--hero-muted); margin-bottom: 28px; max-width: 540px; }
+  .hero .btn { background: var(--hero-accent); color: #0e1a13; font-size: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 22px; padding: 0; list-style: none; color: var(--hero-muted); font-size: 15px; }
+  .chips li::before { content: "✓ "; color: var(--hero-accent); font-weight: 700; }
+
+  /* пример разбора */
+  .sample {
+    background: #fdfdfb; color: #1c1c1a;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    transform: rotate(1.2deg);
+    font-size: 15px;
+  }
+  .sample .cap { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #7a7a73; margin-bottom: 12px; }
+  .sample table { width: 100%; border-collapse: collapse; }
+  .sample td { padding: 9px 0; border-bottom: 1px solid #ecece6; vertical-align: top; }
+  .sample td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .sample tr.total td { border-bottom: 0; padding-top: 14px; font-weight: 700; font-size: 17px; }
+  .sample tr.total td:last-child { color: #1f6f4a; }
+  .sample .tag { display: inline-block; font-size: 12px; font-weight: 600; color: #b4441f; background: #fbece5; border-radius: 6px; padding: 1px 7px; margin-left: 4px; }
+  .sample .note { font-size: 12px; color: #7a7a73; margin: 10px 0 0; }
+
+  /* сетки */
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  section.alt .card { background: var(--bg); }
+  .card p:last-child { margin-bottom: 0; }
+  .quote { border-left: 4px solid var(--warn); }
+  .quote p { font-size: 18px; }
+  .quote .small { font-size: 14px; }
+  .ico {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent-soft); font-size: 20px; margin-bottom: 12px;
+  }
+
+  .callout {
+    margin-top: 24px;
+    background: var(--accent-soft);
+    border-radius: 14px;
+    padding: 22px 24px;
+    font-size: 18px;
+  }
+  .callout strong { color: var(--accent); }
+
+  /* шаги */
+  .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  .steps li { counter-increment: s; position: relative; padding: 0 0 26px 60px; }
+  .steps li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: 0;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-text);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .steps li:not(:last-child)::after {
+    content: ""; position: absolute; left: 19px; top: 44px; bottom: 4px; width: 2px; background: var(--line);
+  }
+  .steps p { margin: 0; color: var(--muted); }
+
+  /* вопросы */
+  details { border-bottom: 1px solid var(--line); padding: 16px 0; }
+  details:first-of-type { border-top: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; font-size: 18px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--accent); font-size: 24px; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  details p { margin: 10px 0 0; color: var(--muted); max-width: 760px; }
+
+  /* заявка */
+  .cta { background: var(--hero-bg); color: var(--hero-text); }
+  .cta .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .cta .lead { color: var(--hero-muted); font-size: 18px; }
+  .cta .card { color: var(--text); }
+  .cta ul { padding-left: 20px; color: var(--hero-muted); }
+  .cta li { margin-bottom: 8px; }
+  label { display: block; font-weight: 600; font-size: 15px; margin: 16px 0 6px; }
+  label:first-child { margin-top: 0; }
+  select, textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 12px;
+  }
+  textarea { min-height: 84px; resize: vertical; }
+  form .btn { margin-top: 20px; width: 100%; font-size: 18px; }
+
+  footer { padding: 28px 0; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 820px) {
+    section { padding: 44px 0; }
+    .hero { padding: 36px 0 48px; }
+    .hero .wrap, .cta .wrap { grid-template-columns: 1fr; gap: 32px; }
+    .g2, .g3 { grid-template-columns: 1fr; }
+    .sample { transform: none; }
+    .hero .btn { width: 100%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="logo">Разбор <span>удержаний</span></div>
+    <a class="btn sm" href="#request">Бесплатный разбор</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <div class="badge">Для продавцов Wildberries и Ozon</div>
+      <h1>Маркетплейс удержал лишнее? <em>Найду, что можно вернуть</em></h1>
+      <p class="lead">Пришлите отчёт о реализации за месяц. Через 2–3 дня получите список спорных штрафов, списаний и недостач с суммами и готовыми текстами обращений.</p>
+      <a class="btn" href="#request">Получить разбор бесплатно</a>
+      <ul class="chips">
+        <li>Первый разбор 0 ₽</li>
+        <li>Без доступа в кабинет</li>
+        <li>Без API-ключей</li>
+      </ul>
+    </div>
+
+    <div class="sample" aria-label="Пример оформления разбора">
+      <div class="cap">Как выглядит разбор</div>
+      <table>
+        <tr><td>Штраф за габариты <span class="tag">спорно</span><br><span class="small" style="color:#7a7a73">замеры не совпадают с карточкой</span></td><td>12 400 ₽</td></tr>
+        <tr><td>Логистика списана дважды <span class="tag">спорно</span><br><span class="small" style="color:#7a7a73">3 заказа</span></td><td>2 150 ₽</td></tr>
+        <tr><td>Утерян на складе, без компенсации <span class="tag">спорно</span><br><span class="small" style="color:#7a7a73">5 шт.</span></td><td>9 800 ₽</td></tr>
+        <tr><td>Штраф за срок отгрузки<br><span class="small" style="color:#7a7a73">оснований для спора нет</span></td><td style="color:#7a7a73;font-weight:400">1 500 ₽</td></tr>
+        <tr class="total"><td>Стоит оспорить</td><td>24 350 ₽</td></tr>
+      </table>
+      <p class="note">Пример оформления, цифры условные.</p>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>Знакомо?</h2>
+    <p class="sub">Так продавцы описывают это на форумах. Если узнали себя хотя бы в одном пункте, в вашем отчёте есть что проверить.</p>
+    <div class="grid g2">
+      <div class="card quote">
+        <p>«Суммы по актам и выплатам не сходятся»</p>
+        <p class="small muted">Отчёт говорит одно, на счёт приходит другое, а где разница, непонятно.</p>
+      </div>
+      <div class="card quote">
+        <p>«Сверяю вручную по отчётам о реализации»</p>
+        <p class="small muted">Вечера в Excel вместо того, чтобы заниматься товаром.</p>
+      </div>
+      <div class="card quote">
+        <p>Штраф за габариты, хотя коробка та же, что и год назад</p>
+        <p class="small muted">Склад перемерил по-своему, логистика выросла, а вы узнали из отчёта.</p>
+      </div>
+      <div class="card quote">
+        <p>Товар потеряли или испортили, компенсации нет</p>
+        <p class="small muted">Поддержка отвечает шаблоном и закрывает обращение.</p>
+      </div>
+    </div>
+    <div class="callout">
+      Продавцы на форумах пишут, что сотрудник, который занимается только спорами, возвращает <strong>до 100 тысяч рублей в месяц</strong>. У большинства такого сотрудника нет, и эти деньги просто остаются у маркетплейса.
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Что я проверяю в отчёте</h2>
+    <p class="sub">Каждую строку удержаний, а не итоговую сумму.</p>
+    <div class="grid g3">
+      <div class="card"><div class="ico">📦</div><h3>Штрафы за габариты</h3><p class="muted">Перемеры склада, после которых выросли логистика и хранение.</p></div>
+      <div class="card"><div class="ico">⏱</div><h3>Штрафы за сроки</h3><p class="muted">Опоздание в слот и просрочка отгрузки, в том числе когда не принимал сам склад.</p></div>
+      <div class="card"><div class="ico">🔁</div><h3>Повторные списания</h3><p class="muted">Логистика и обратная доставка, начисленные дважды по одному заказу.</p></div>
+      <div class="card"><div class="ico">❓</div><h3>Потери и порча</h3><p class="muted">Товар утерян или испорчен на складе, а компенсация не пришла.</p></div>
+      <div class="card"><div class="ico">📉</div><h3>Недопоставки</h3><p class="muted">Приёмка насчитала меньше, чем вы привезли.</p></div>
+      <div class="card"><div class="ico">🧾</div><h3>Расхождения с выплатой</h3><p class="muted">Сумма в отчёте не совпадает с тем, что пришло на счёт.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Что вы получите</h2>
+    <p class="sub">Один файл, по которому сразу понятно, что делать.</p>
+    <div class="grid g3">
+      <div class="card"><h3>Список спорных удержаний</h3><p class="muted">По каждой позиции: сумма, номер заказа или поставки и почему её стоит оспорить.</p></div>
+      <div class="card"><h3>Итоговая сумма</h3><p class="muted">Сколько денег в отчёте под вопросом. Вы решаете, стоит ли оно вашего времени.</p></div>
+      <div class="card"><h3>Тексты обращений</h3><p class="muted">По самым крупным позициям. Копируете в поддержку и отправляете.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Как это происходит</h2>
+    <p class="sub">От вас нужно минут десять.</p>
+    <ol class="steps">
+      <li><h3>Оставляете заявку</h3><p>Форма ниже откроет Telegram с готовым сообщением. Я отвечаю в тот же день.</p></li>
+      <li><h3>Присылаете отчёт о реализации</h3><p>Обычная выгрузка из кабинета за последний месяц. Подскажу, где её взять.</p></li>
+      <li><h3>Через 2–3 дня получаете разбор</h3><p>Спорные удержания, суммы и тексты обращений.</p></li>
+      <li><h3>Решаете, что дальше</h3><p>Подаёте обращения сами. Или договариваемся, что споры веду я за процент от возвращённого: не вернули, не платите.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="grid g2">
+      <div class="card">
+        <h2 style="font-size:24px">Почему бесплатно</h2>
+        <p>Меня зовут Владимир, я разработчик. Делаю сервис финансового контроля для продавцов маркетплейсов.</p>
+        <p>Сейчас разбираю отчёты вручную, чтобы понять, какие удержания встречаются чаще всего и что из них реально возвращают. Вам список спорных сумм, мне понимание задачи.</p>
+        <p class="muted">На бесплатный разбор беру 5 продавцов.</p>
+      </div>
+      <div class="card">
+        <h2 style="font-size:24px">Что с вашими данными</h2>
+        <p>🔒 Нужен только выгруженный файл отчёта. Доступ в кабинет, пароли и API-ключи я не прошу.</p>
+        <p>🤝 Отчёт не передаю третьим лицам и не публикую без вашего согласия, в том числе в обезличенном виде.</p>
+        <p>🗑 По вашей просьбе удаляю файл и все расчёты по нему.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Частые вопросы</h2>
+    <p class="sub"></p>
+    <details>
+      <summary>Вы гарантируете, что деньги вернут?</summary>
+      <p>Нет. Решение принимает маркетплейс. Я показываю, где есть основания для спора, и помогаю составить обращение. Без разбора вы даже не знаете, о чём спорить.</p>
+    </details>
+    <details>
+      <summary>В чём подвох бесплатного разбора?</summary>
+      <p>Подвоха нет. Мне нужны реальные отчёты, чтобы сделать сервис, который ищет спорные удержания автоматически. После разбора вы ничего не должны.</p>
+    </details>
+    <details>
+      <summary>У меня небольшой оборот. Есть смысл?</summary>
+      <p>Есть, если в отчёте появляются штрафы, потери или суммы не сходятся. Спорная сумма будет меньше, но и время вы не тратите: разбор делаю я.</p>
+    </details>
+    <details>
+      <summary>Сколько стоит, если споры будете вести вы?</summary>
+      <p>Процент от того, что реально вернулось на ваш счёт. Размер обсуждаем после разбора, когда понятна сумма. Ничего не вернули, ничего не платите.</p>
+    </details>
+    <details>
+      <summary>За какой период нужен отчёт?</summary>
+      <p>За последний месяц. Если есть конкретный период, где удержали особенно много, присылайте его.</p>
+    </details>
+  </div>
+</section>
+
+<section class="cta" id="request">
+  <div class="wrap">
+    <div>
+      <h2>Узнайте, сколько можно оспорить в вашем отчёте</h2>
+      <p class="lead">Заявка занимает минуту. Разбор бесплатный и ни к чему не обязывает.</p>
+      <ul>
+        <li>Ответ в Telegram в тот же день</li>
+        <li>Разбор за 2–3 дня</li>
+        <li>Без доступа в кабинет и API-ключей</li>
+      </ul>
+    </div>
+    <form class="card" id="request-form">
+      <label for="mp">Где продаёте</label>
+      <select id="mp">
+        <option>Wildberries</option>
+        <option>Ozon</option>
+        <option>Wildberries и Ozon</option>
+      </select>
+
+      <label for="turnover">Оборот в месяц</label>
+      <select id="turnover">
+        <option>до 500 тыс. ₽</option>
+        <option>500 тыс. – 2 млн ₽</option>
+        <option>2–10 млн ₽</option>
+        <option>больше 10 млн ₽</option>
+      </select>
+
+      <label for="pain">Что беспокоит больше всего (необязательно)</label>
+      <textarea id="pain" placeholder="Например: штрафы за габариты, не сходятся выплаты, потерянный товар"></textarea>
+
+      <button class="btn" type="submit">Отправить заявку в Telegram</button>
+      <p class="muted small" style="margin:12px 0 0">Откроется Telegram с готовым сообщением, останется нажать «Отправить». Или напишите напрямую: <a id="tg-link" href="#">Telegram</a>.</p>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Не являюсь представителем Wildberries или Ozon. Решение по обращениям принимает маркетплейс.</div>
+</footer>
+
+<script>
+  const TG_USERNAME = "VVP_engine";
+
+  const tgUrl = "https://t.me/" + TG_USERNAME;
+  const link = document.getElementById("tg-link");
+  link.href = tgUrl;
+  link.textContent = "@" + TG_USERNAME;
+
+  document.getElementById("request-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const lines = [
+      "Здравствуйте! Хочу разбор удержаний.",
+      "Площадка: " + document.getElementById("mp").value,
+      "Оборот в месяц: " + document.getElementById("turnover").value,
+    ];
+    const pain = document.getElementById("pain").value.trim();
+    if (pain) lines.push("Что беспокоит: " + pain);
+    window.open(tgUrl + "?text=" + encodeURIComponent(lines.join("\n")), "_blank");
+  });
+</script>
+</body>
+</html>
